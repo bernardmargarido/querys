@@ -1,0 +1,35 @@
+USE [GATEWAY]
+GO
+
+/****** Object:  View [dbo].[cpq_itens_tabela_preco]    Script Date: 18/07/2022 14:57:27 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE view [dbo].[cpq_itenstabelapreco] as 
+SELECT 
+	DA1.R_E_C_N_O_ itemId
+	,RTRIM(DA1.DA1_ITEM) itemTabela
+	,RTRIM(DA1.DA1_CODTAB) codigoTabela
+	,DA0.R_E_C_N_O_ tabelaId
+	,B1.R_E_C_N_O_ productId
+	,RTRIM(DA1.DA1_CODPRO) codigoProduto
+	,RTRIM(B1.B1_DESC) descricaoProduto
+	,DA1.DA1_PRCVEN precoVenda
+	,DA1.DA1_XPRCMI precoMinimo
+	,DA1.DA1_XMGB margem
+	,DA1.DA1_XMGMIN margemMinima
+FROM 
+	[LABOR-PROD12]..DA1040 DA1 
+	INNER JOIN [LABOR-PROD12]..DA0040 DA0 (NOLOCK) ON DA0.DA0_FILIAL = DA1.DA1_FILIAL AND DA0.DA0_CODTAB = DA1.DA1_CODTAB AND DA0.D_E_L_E_T_ = ''
+	INNER JOIN [LABOR-PROD12]..SB1040 B1 (NOLOCK) ON B1.B1_FILIAL = '' AND B1.B1_COD = DA1.DA1_CODPRO AND B1.D_E_L_E_T_ = ''
+WHERE 
+	DA1.DA1_FILIAL = '0404' AND 
+	DA1.DA1_PRCVEN > 0 AND 
+	DA1.D_E_L_E_T_ = '' 
+GO
+
+

@@ -1,0 +1,36 @@
+USE [GATEWAY]
+GO
+
+/****** Object:  View [dbo].[cpq_clientes]    Script Date: 23/06/2022 16:05:25 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE view [dbo].[cpq_transportadoras] as 
+SELECT
+	SA4.R_E_C_N_O_ AS transportadoraId
+	,RTRIM(SA4.A4_FILIAL) AS codigoFilial
+	,RTRIM(SA4.A4_COD) AS codigoErp
+	,RTRIM(SA4.A4_NOME) AS razaoSocial
+	,RTRIM(SA4.A4_NREDUZ) AS nomeFantasia
+	,RTRIM(SA4.A4_END) AS endereco
+	,RTRIM(SA4.A4_BAIRRO) AS bairro
+	,RTRIM(SA4.A4_EST) AS uf
+	,RTRIM(SA4.A4_MUN) AS municipio
+	,RTRIM(SA4.A4_CEP) AS cep
+	,CASE WHEN LEN(RTRIM(SA4.A4_CGC)) > 11 THEN RTRIM(SA4.A4_CGC) ELSE '' END AS cnpj 
+	,CASE WHEN LEN(RTRIM(SA4.A4_CGC)) < 11 THEN RTRIM(SA4.A4_CGC) ELSE '' END AS cpf 
+	,RTRIM(SA4.A4_DDD) AS ddd
+	,RTRIM(SA4.A4_TEL) AS telefone
+	,RTRIM(SA4.A4_EMAIL) AS email
+	,RTRIM(SA4.A4_INSCRM) AS inscricaoMunicipal
+	,CASE WHEN SA4.A4_MSBLQL = '1' THEN 'S' ELSE 'N' END AS bloqueado
+FROM 
+	[LABOR-PROD12]..SA4040 SA4 (NOLOCK)
+WHERE
+	SA4.A4_MSEXP = '' AND
+	SA4.D_E_L_E_T_ = ' '
+GO

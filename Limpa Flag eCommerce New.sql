@@ -1,0 +1,52 @@
+-- Update Categorias
+UPDATE AY0010 SET AY0_ENVECO = '1',AY0_STATEC = '2'
+WHERE
+D_E_L_E_T_ = ''
+
+-- Update Marcas
+UPDATE AY2010 SET AY2_ENVECO = '1',AY2_STATEC = '2'
+WHERE
+D_E_L_E_T_ = ''
+
+-- Update Filtros
+UPDATE AY3010 SET AY3_ENVECO = '1',AY3_STATEC = '2'
+WHERE
+D_E_L_E_T_ = ''
+
+UPDATE AY4010 SET AY4_ENVECO = '1',AY4_STATEC = '2'
+WHERE
+D_E_L_E_T_ = ''
+
+UPDATE AY5010 SET AY5_ENVECO = '1',AY5_STATEC = '2'
+WHERE
+D_E_L_E_T_ = ''
+
+--Garantia Estendida
+--UPDATE AYI010 SET AYI_ENVECO = '1',AYI_STATEC = '2',AYI_OPER = '1'
+--WHERE 
+--D_E_L_E_T_ = ''
+
+-- Enquadramento Garantia
+--UPDATE AYJ010 SET AYJ_ENVECO = '1',AYJ_STATEC = '2',AYJ_OPER = '1'
+--WHERE 
+--D_E_L_E_T_ = ''
+
+-- Produto Pai
+--UPDATE SB4010 SET B4_ENVECO = '1',B4_STATECO = '2',B4_OPER = '1',B4_CATECO = '1'
+--WHERE
+--D_E_L_E_T_ = ''
+
+-- Produto Pai
+UPDATE AYV010 SET AYV_ENVECO = '1',AYV_STATEC = '2',AYV_CATECO = '1'
+WHERE
+D_E_L_E_T_ = ''
+
+--Produto Filho
+--UPDATE SB1010 SET B1_OPER = '1',B1_STATECO = '2',B1_ENVECO = '1'
+--WHERE
+--D_E_L_E_T_ = ''
+
+--Estoques
+UPDATE SB2010 SET B2_MSEXP = ''
+WHERE
+D_E_L_E_T_ = ''
