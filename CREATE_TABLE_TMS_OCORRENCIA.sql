@@ -1,0 +1,32 @@
+CREATE TABLE TMS_OCORRENCIA
+(
+	recno INT IDENTITY,
+	identificador char(10),
+	remetente_cnpj_cpf char(14),
+	transportador_cnpj_cpf char(14),
+	documento_tipo varchar(15),
+	documento_numero char(9),
+	documento_serie char(3),
+	documento_emissao date,
+	documento_chave char(44),
+	ocorrencia_codigo char(3),
+	ocorrencia_descricao varchar(100),
+	ocorrencia_ocorreu_data date,
+	ocorrencia_ocorreu_hora char(5),
+	ocorrencia_solucao_data date,
+	ocorrencia_solucao_hora char(5),
+	ocorrencia_solucao_responsavel varchar(100),
+	ocorrencia_cancelada char(1),
+	ocorrencia_observacao text,
+	ocorrencia_origem_informacao varchar(60),
+	ocorrencia_responsavel varchar(60),
+	ocorrencia_responsavel_interessado_nome varchar(100),
+	ocorrencia_responsavel_interessado_documento varchar(14),
+	ocorrencia_responsavel_contato varchar(100),
+	tipo_entrega char(1),
+	tipo_indica_problema char(1),
+	tipo_agendamento char(1),
+	tipo_necessita_interacao char(1),
+	tipo_permite_calculo char(1)
+
+)

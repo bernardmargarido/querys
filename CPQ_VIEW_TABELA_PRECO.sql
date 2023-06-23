@@ -1,7 +1,7 @@
 USE [GATEWAY]
 GO
 
-/****** Object:  View [dbo].[cpq_tabela_preco]    Script Date: 21/07/2022 18:51:29 ******/
+/****** Object:  View [dbo].[cpq_tabela_preco]    Script Date: 22/06/2023 14:09:32 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -9,10 +9,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-
-CREATE view [dbo].[cpq_tabela_preco] as 
+ALTER view [dbo].[cpq_tabela_preco] as 
 SELECT 
-	DA0.R_E_C_N_O_ tabelaId
+	DA0.DA0_FILIAL codigoFilial
+	,DA0.R_E_C_N_O_ tabelaId
 	,RTRIM(DA0.DA0_CODTAB) codigoErp
 	,RTRIM(DA0.DA0_DESCRI) descricao
 	,CASE 
@@ -22,9 +22,9 @@ SELECT
 			'inativo'
 	END ativo
 FROM 
-	[LABOR-PROD12]..DA0040 DA0 
+	[LABOR12-33]..DA0040 DA0 
 WHERE 
-	DA0.DA0_FILIAL = '0404' AND 
+	--DA0.DA0_FILIAL = '0404' AND 
 	DA0.DA0_MSEXP = '' AND
 	DA0.D_E_L_E_T_ = '' 
 GO

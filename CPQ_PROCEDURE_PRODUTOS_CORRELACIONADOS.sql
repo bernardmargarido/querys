@@ -8,7 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-CREATE PROCEDURE [dbo].[cpq_correlacionados]
+ALTER PROCEDURE [dbo].[cpq_correlacionados]
 	-- Add the parameters for the stored procedure here
 @FILIAL varchar(4),
 @PRODUTO varchar(30)
