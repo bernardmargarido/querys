@@ -1,0 +1,21 @@
+SELECT 
+	A4_CGC,
+	'EXTERNO BUNZL',
+	'',
+	'',
+	A4_INSCRM,
+	A4_CGC,
+	A4_COD,
+	'',
+	'004',
+	A4_CGC,
+	A4_NOME,
+	CASE WHEN CharIndex(';', A4_EMAIL) > 0 THEN RTRIM(SUBSTRING(A4_EMAIL,1,CharIndex(';', A4_EMAIL) - 1)) ELSE RTRIM(A4_EMAIL) END A4_EMAIL,
+	A4_DDD,
+	A4_TEL
+	
+FROM 
+	SA4010 
+WHERE 
+	A4_CGC <> '' AND 
+	D_E_L_E_T_ = ''

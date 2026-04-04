@@ -1,7 +1,7 @@
 USE [GATEWAY]
 GO
 
-/****** Object:  View [dbo].[cpq_estoque]    Script Date: 22/06/2023 13:53:49 ******/
+/****** Object:  View [dbo].[cpq_estoque]    Script Date: 10/07/2023 10:33:37 ******/
 SET ANSI_NULLS ON
 GO
 
@@ -9,13 +9,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
-
-
-
 ALTER view [dbo].[cpq_estoque] as 
 SELECT
-	cast(SB1.R_E_C_N_O_ as int) AS productId
-	,RTRIM(B2_FILIAL) AS codigoFilial
+	RTRIM(B2_FILIAL) AS codigoFilial
+	,cast(SB1.R_E_C_N_O_ as int) AS productId
 	,RTRIM(B1_COD) AS codigoErp
 	,RTRIM(B1_DESC) AS descricao
 	,RTRIM(B1_LOCPAD) AS armazem
@@ -50,7 +47,6 @@ FROM
 		ORDER BY D1.D1_DTDIGIT DESC
 	)CUSTO_ENTRADA
 WHERE
-	--SB2.B2_FILIAL = '0404' AND
 	SB2.B2_LOCAL = '01' AND
 	SB2.B2_XCPQEXP = '' AND
 	SB2.D_E_L_E_T_ = ' '

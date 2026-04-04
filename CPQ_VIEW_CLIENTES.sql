@@ -1,12 +1,16 @@
 USE [GATEWAY]
 GO
 
-/****** Object:  View [dbo].[cpq_clientes]    Script Date: 15/05/2023 11:34:21 ******/
+/****** Object:  View [dbo].[cpq_clientes]    Script Date: 09/08/2024 18:20:44 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
+
 
 
 ALTER view [dbo].[cpq_clientes] as 
@@ -40,6 +44,7 @@ SELECT
 	,mailNfe
 	,mailCompras
 	,mailContato
+	,mailBoleto
 	,contato
 	,inscricaoEstadual
 	,inscricaoMunicipal
@@ -89,6 +94,8 @@ SELECT
 	,dataAnvisa
 	,contribuinte
 	,grupoColigado
+	,condicaoPagamento
+	,linha
 	,tipoRegistro
 FROM 
 (
@@ -117,11 +124,12 @@ FROM
 		,RTRIM(A1_PESSOA) AS tipoPessoa
 		,CASE WHEN A1_PESSOA = 'J' THEN RTRIM(A1_CGC) ELSE ' ' END AS cnpj
 		,CASE WHEN A1_PESSOA = 'F' THEN RTRIM(A1_CGC) ELSE ' ' END AS cpf
-		,RTRIM(A1_DDD) AS ddd
+		,CASE WHEN LEN(RTRIM(A1_DDD)) > 2 THEN SUBSTRING(RTRIM(A1_DDD),2,2) ELSE RTRIM(A1_DDD) END AS ddd
 		,RTRIM(A1_TEL) AS telefone
 		,RTRIM(A1_EMAIL) AS mailNfe
 		,RTRIM(A1_EMLCOMP) AS mailCompras
 		,RTRIM(A1_EMLCONT) AS mailContato
+		,RTRIM(A1_EMLFIN)  AS mailBoleto
 		,RTRIM(A1_CONTATO) AS contato
 		,RTRIM(A1_INSCR) AS inscricaoEstadual
 		,RTRIM(A1_INSCRM) AS inscricaoMunicipal
@@ -227,6 +235,12 @@ FROM
 			ELSE 'Não' 
 		END AS contribuinte
 		,RTRIM(SZ5.Z5_DESCRI) AS grupoColigado
+		,RTRIM(A1_COND) AS condicaoPagamento
+		,CASE 
+			WHEN A1_XLINHA = '1' THEN 'Diagnostica' 
+			WHEN A1_XLINHA = '2' THEN 'Hospitalar'
+			ELSE 'Sem Classificacao'
+		END linha
 		,'cliente' tipoRegistro
 	FROM [LABOR-PROD12]..SA1040 SA1 (NOLOCK)
 	LEFT JOIN [LABOR-PROD12]..ACY040 ACY (NOLOCK)
@@ -290,7 +304,6 @@ FROM
 	WHERE
 		SA1.A1_MSEXP = '' AND
 		SA1.D_E_L_E_T_ = ' '
-	
 	UNION ALL 
 	
 	SELECT
@@ -317,11 +330,12 @@ FROM
 		,RTRIM(US_PESSOA) AS tipoPessoa
 		,CASE WHEN US_PESSOA = 'J' THEN RTRIM(US_CGC) ELSE ' ' END AS cnpj
 		,CASE WHEN US_PESSOA = 'F' THEN RTRIM(US_CGC) ELSE ' ' END AS cpf
-		,RTRIM(US_DDD) AS ddd
+		,CASE WHEN LEN(RTRIM(US_DDD)) > 2 THEN SUBSTRING(RTRIM(US_DDD),2,2) ELSE RTRIM(US_DDD) END AS ddd 
 		,RTRIM(US_TEL) AS telefone
 		,RTRIM(US_EMAIL) AS mailNfe
 		,'' mailCompras
 		,'' mailContato
+		,'' mailBoleto
 		,RTRIM(US_XCONTAT) AS contato
 		,RTRIM(US_INSCR) AS inscricaoEstadual
 		,'' AS inscricaoMunicipal
@@ -412,6 +426,8 @@ FROM
 				'Não' 
 		END AS contribuinte
 		,'' AS grupoColigado
+		,'' AS condicaoPagamento
+		,'' AS linha
 		,'prospect' tipoRegistro
 	FROM [LABOR-PROD12]..SUS040 SUS (NOLOCK)
 	LEFT JOIN [LABOR-PROD12]..SA3040 SA3 (NOLOCK)
@@ -455,6 +471,5 @@ FROM
 		) 
 		AND SUS.D_E_L_E_T_ = ''
 )CLI_PROSPECTS 
+
 GO
-
-

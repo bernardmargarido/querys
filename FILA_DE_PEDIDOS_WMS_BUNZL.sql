@@ -48,7 +48,9 @@ SELECT
 							C9.C9_PEDIDO = C5.C5_NUM AND   
 							C9.C9_NFISCAL = '' AND   
 							C9.C9_SERIENF = '' AND   
-							C9.C9_BLEST <> '' AND   
+							C9.C9_BLEST <> '' AND
+							( C9.C9_BLCRED = '  ' AND C9.C9_XIDREQU = '' OR 
+							C9.C9_BLCRED = '  ' AND C9.C9_XIDREQU <> '') AND
 							C9.C9_BLCRED = '  ' AND   
                             ( B2.B2_QATU - B2.B2_RESERVA ) >= C9.C9_QTDLIB AND   
 							C9.C9_LOCAL IN ('01') AND   
@@ -62,7 +64,11 @@ SELECT
 			C5.C5_LIBEROK = 'S' AND   
 			C5.C5_XPVORIG = '' AND   
 			C5.D_E_L_E_T_ = ''   
- )PEDIDOS   
+		ORDER BY C5.C5_NUM
+ )PEDIDOS_WMS   
  WHERE   
-		QTDLIB = QTDPED   
+	QTDLIB = QTDPED   
 ORDER BY PEDIDO
+
+
+--SELECT * FROM SC9040 WHERE C9_FILIAL = '0404' AND C9_PEDIDO = '576209' AND D_E_L_E_T_ = ''

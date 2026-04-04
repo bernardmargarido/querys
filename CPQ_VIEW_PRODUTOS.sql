@@ -1,12 +1,13 @@
 USE [GATEWAY]
 GO
 
-/****** Object:  View [dbo].[cpq_produtos]    Script Date: 04/04/2023 18:19:58 ******/
+/****** Object:  View [dbo].[cpq_produtos]    Script Date: 01/08/2023 10:48:16 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 ALTER view [dbo].[cpq_produtos] as 
 SELECT
@@ -45,6 +46,7 @@ SELECT
 	,COALESCE(PRODUTO_CASADO.produtoId,'') produtoCasado
 	,COALESCE(PRODUTO_CASADO.B1_DESC,'') descricaoProdutoCasado
 	,COALESCE(RTRIM(ACU.ACU_DESC),'') linhaProduto 
+	,CAST(B1_PE / 30 AS INT) leadTime
 FROM [LABOR-PROD12]..SB1040 SB1 (NOLOCK)
 LEFT JOIN [LABOR-PROD12]..SB5040 SB5 (NOLOCK)
 	ON SB5.B5_FILIAL = ' '

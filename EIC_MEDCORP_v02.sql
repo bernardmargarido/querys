@@ -1,0 +1,155 @@
+WITH PO AS (
+    SELECT 
+        W2.W2_FILIAL,
+        W2.W2_PO_NUM,
+        W2.W2_FORN,
+        W2.W2_FORLOJ,
+        W2.W2_PO_DT,
+        A2.A2_NOME
+    FROM SW2010 W2 WITH (NOLOCK)
+    INNER JOIN SA2010 A2 WITH (NOLOCK)
+        ON A2.A2_FILIAL = ''
+        AND A2.A2_COD = W2.W2_FORN 
+        AND A2.A2_LOJA = W2.W2_FORLOJ 
+        AND A2.D_E_L_E_T_ = ''
+    WHERE 
+        W2.D_E_L_E_T_ = ''
+        AND W2.W2_PO_DT >= '20250101' 
+        AND W2.W2_PO_DT <= '20260402'
+),
+ItensPO AS (
+    SELECT 
+        W3_FILIAL,
+        W3_PO_NUM,
+        W3_POSICAO,
+        W3_COD_I,
+        W3_PART_N,
+        W3_QTDE,
+        W3_PRECO
+    FROM SW3010 WITH (NOLOCK)
+    WHERE 
+        D_E_L_E_T_ = ''
+        AND W3_SEQ <> ''
+        AND W3_FLUXO IN ('1','7')
+),
+ItensHawb AS (
+    SELECT 
+        W7.W7_FILIAL,
+        W7.W7_PO_NUM,
+        W7.W7_COD_I,
+        W7.W7_POSICAO,
+        W7.W7_PGI_NUM,
+        W7.W7_HAWB,
+        W6.W6_DI_NUM,
+        W6.W6_DT_ENTR,
+        W6.W6_DT,
+        W6.W6_NF_ENT,
+        W6.W6_DT_NF,
+        W6.W6_DT_EMB,
+        W6.W6_CHEG
+    FROM SW7010 W7 WITH (NOLOCK)
+    INNER JOIN SW6010 W6 WITH (NOLOCK)
+        ON W6.W6_FILIAL = W7.W7_FILIAL 
+        AND W6.W6_HAWB = W7.W7_HAWB 
+        AND W6.D_E_L_E_T_ = ''
+    WHERE 
+        W7.D_E_L_E_T_ = ''
+),
+SaldoInvoice AS ( 
+    SELECT 
+        W8_FILIAL,
+        W8_PO_NUM, 
+        W8_COD_I, 
+        SUM(W8_QTDE) TOTAL_QTDE 
+    FROM 
+        SW8010 
+    WHERE 
+        D_E_L_E_T_ = '' 
+    GROUP BY W8_FILIAL, W8_PO_NUM, W8_COD_I 
+ ), 
+ SaldoPo AS ( 
+    SELECT 
+        W3_FILIAL, 
+        W3_PO_NUM, 
+        W3_COD_I, 
+        SUM(W3_QTDE) SALDO_PO 
+    FROM 
+        SW3010 
+    WHERE 
+        W3_PGI_NUM = '' 
+        AND W3_SEQ = '' 
+        AND D_E_L_E_T_ = '' 
+    GROUP BY W3_FILIAL, W3_PO_NUM, W3_COD_I 
+ ), 
+ItensInv AS (
+    SELECT 
+        W8_FILIAL,
+        W8_HAWB,
+        W8_PO_NUM,
+        W8_COD_I,
+        W8_POSICAO,
+        W8_PGI_NUM,
+        W8_INVOICE,
+        W8_DT_EMIS
+    FROM SW8010 WITH (NOLOCK)
+    WHERE 
+        D_E_L_E_T_ = ''
+)
+SELECT 
+    IPO.W3_COD_I            AS SKU,
+    IPO.W3_PART_N           AS COD_FABRICA,
+    P.W2_FORN               AS COD_FOR,
+    P.W2_FORLOJ             AS LOJ_FOR,
+    P.A2_NOME               AS FORNECEDOR,
+    CASE 
+        WHEN (IH.W6_DT_ENTR <> '' OR IH.W6_NF_ENT <> '') 
+             AND II.W8_INVOICE <> '' THEN 'ENTREGUE'
+        WHEN II.W8_DT_EMIS <> '' THEN 'TRANSITO'
+        ELSE 'PED COMPRAS'
+    END AS STATUS,
+    ISNULL(IH.W7_HAWB,'')   AS PROCESSO,
+    IPO.W3_PO_NUM           AS PO,
+    CONVERT(VARCHAR(10), TRY_CONVERT(DATE,P.W2_PO_DT),103) AS DATA_PO,
+    ISNULL(IH.W6_DI_NUM,'') W6_DI_NUM,
+    ISNULL(CONVERT(VARCHAR(10), TRY_CONVERT(DATE,IH.W6_DT),103),'') AS DATA_DI,
+    ISNULL(II.W8_INVOICE,'') W8_INVOICE,
+    ISNULL(CONVERT(VARCHAR(10), TRY_CONVERT(DATE,II.W8_DT_EMIS),103),'') AS DATA_INVOICE,
+    ISNULL(CONVERT(VARCHAR(10),
+        DATEADD(DAY, ISNULL(S9.W9_DIAS_PA,0), TRY_CONVERT(DATE,II.W8_DT_EMIS)),103
+    ),'') AS VENC_INVOICE,
+    ISNULL(IH.W6_NF_ENT,'') W6_NF_ENT,
+    ISNULL(CONVERT(VARCHAR(10), TRY_CONVERT(DATE,IH.W6_DT_NF),103),'') AS DATA_NF,
+    ISNULL(CONVERT(VARCHAR(10), TRY_CONVERT(DATE,IH.W6_DT_EMB),103),'') AS DATA_EMBARQUE,
+    ISNULL(CONVERT(VARCHAR(10), TRY_CONVERT(DATE,IH.W6_CHEG),103),'') AS DATA_CHEGADA,
+    IPO.W3_QTDE,
+    IPO.W3_PRECO,
+    IPO.W3_QTDE * IPO.W3_PRECO AS TOTAL_PURCHASE,
+    ISNULL((SldPO.SALDO_PO - Saldo.TOTAL_QTDE ), 0) SALDO_Q
+FROM PO P
+INNER JOIN ItensPO IPO
+    ON IPO.W3_FILIAL = P.W2_FILIAL 
+    AND IPO.W3_PO_NUM = P.W2_PO_NUM 
+LEFT JOIN ItensHawb IH
+    ON IH.W7_FILIAL = IPO.W3_FILIAL 
+    AND IH.W7_PO_NUM = IPO.W3_PO_NUM 
+    AND IH.W7_POSICAO = IPO.W3_POSICAO 
+    AND IH.W7_COD_I = IPO.W3_COD_I 
+LEFT JOIN ItensInv II
+    ON II.W8_FILIAL = IH.W7_FILIAL
+    AND II.W8_HAWB = IH.W7_HAWB 
+    AND II.W8_PO_NUM = IH.W7_PO_NUM 
+    AND II.W8_POSICAO = IH.W7_POSICAO 
+    AND II.W8_PGI_NUM = IH.W7_PGI_NUM 
+LEFT JOIN SW9010 S9 WITH (NOLOCK)
+    ON S9.D_E_L_E_T_ = '' 
+    AND S9.W9_FILIAL = II.W8_FILIAL 
+    AND S9.W9_HAWB = II.W8_HAWB 
+    AND S9.W9_INVOICE = II.W8_INVOICE
+LEFT JOIN SaldoInvoice Saldo 
+    ON Saldo.W8_FILIAL = IPO.W3_FILIAL
+    AND Saldo.W8_PO_NUM = IPO.W3_PO_NUM 
+    AND Saldo.W8_COD_I = IPO.W3_COD_I 
+LEFT JOIN SaldoPo SldPO 
+    ON SldPO.W3_FILIAL = IPO.W3_FILIAL 
+    AND SldPO.W3_PO_NUM = IPO.W3_PO_NUM 
+    AND SldPO.W3_COD_I = IPO.W3_COD_I 

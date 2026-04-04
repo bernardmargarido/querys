@@ -1,0 +1,55 @@
+begin transaction;
+WITH RankedD2 AS (
+    SELECT
+        D2_FILIAL,
+        D2_DOC,
+        D2_SERIE,
+        D2_COD,
+        D2_QUANT,
+        D2_NUMSEQ,
+        ROW_NUMBER() OVER(PARTITION BY D2_FILIAL, D2_DOC, D2_SERIE, D2_COD, D2_QUANT ORDER BY D2_NUMSEQ) AS RN
+    FROM SD2010 D2
+    WHERE
+        D2.D2_FILIAL = '0101' AND
+        D2.D2_EMISSAO > '20250731' AND
+        D_E_L_E_T_ = ''
+),
+RankedB6 AS (
+    SELECT
+        B6_FILIAL,
+        B6_DOC,
+        B6_SERIE,
+        B6_PRODUTO,
+        B6_QUANT,
+        B6_IDENT,
+        ROW_NUMBER() OVER(PARTITION BY B6_FILIAL, B6_DOC, B6_SERIE, B6_PRODUTO, B6_QUANT ORDER BY B6_IDENT) AS RN
+    FROM SB6010 B6
+    WHERE
+        B6.B6_FILIAL = '0101' AND
+        B6.B6_EMISSAO > '20250731' AND
+        D_E_L_E_T_ = ''
+)
+UPDATE B6
+SET B6.B6_IDENT = rd.D2_NUMSEQ
+FROM SB6010 AS B6
+JOIN RankedB6 AS rb
+    ON B6.B6_FILIAL = rb.B6_FILIAL
+   AND B6.B6_DOC = rb.B6_DOC
+   AND B6.B6_SERIE = rb.B6_SERIE
+   AND B6.B6_PRODUTO = rb.B6_PRODUTO
+   AND B6.B6_IDENT = rb.B6_IDENT
+JOIN RankedD2 AS rd
+    ON B6.B6_FILIAL = rd.D2_FILIAL
+   AND B6.B6_DOC = rd.D2_DOC
+   AND B6.B6_SERIE = rd.D2_SERIE
+   AND B6.B6_PRODUTO = rd.D2_COD
+   AND B6.B6_QUANT = rd.D2_QUANT
+   AND rb.RN = rd.RN;
+commit;
+
+--EXEC sp_who2;
+
+--KILL 60   
+
+
+

@@ -1,0 +1,68 @@
+WITH cte_base AS ( 
+    SELECT 
+        BJ.BJ_FILIAL, 
+        BJ.BJ_DATA, 
+        BJ.BJ_COD AS PRODUTO, 
+        BJ.BJ_QINI AS QTD_INICIAL, 
+        ISNULL(W7.W7_PRECO,0) AS PRECO_USD, 
+        ISNULL(W6.W6_TX_US_D,0) AS TAXA_CAMBIO 
+    FROM SBJ040 BJ 
+    INNER JOIN SB8040 B8 
+        ON B8.B8_LOTECTL = BJ.BJ_LOTECTL 
+       AND B8.B8_FILIAL  = BJ.BJ_FILIAL 
+       AND BJ.BJ_LOCAL   = B8.B8_LOCAL 
+       AND B8.D_E_L_E_T_ = '' 
+    LEFT JOIN ZZ3040 ZZ3 
+        ON ZZ3.ZZ3_LOTEWM   = B8.B8_LOTECTL 
+       AND ZZ3.ZZ3_PRODUT = B8.B8_PRODUTO 
+       AND ZZ3.D_E_L_E_T_ = '' 
+    LEFT JOIN SD1040 D1 
+        ON D1.D1_DOC     = ZZ3.ZZ3_NOTA 
+       AND D1.D1_COD     = ZZ3.ZZ3_PRODUT 
+       AND D1.D1_SERIE   = ZZ3.ZZ3_SERIE  
+       AND D1.D_E_L_E_T_ = '' 
+    LEFT JOIN SW6040 W6 
+        ON W6.W6_HAWB    = D1.D1_CONHEC 
+       AND W6.D_E_L_E_T_ = '' 
+    LEFT JOIN SW7040 W7 
+        ON W7.W7_HAWB    = D1.D1_CONHEC 
+       AND W7.W7_COD_I   = ZZ3.ZZ3_PRODUT 
+       AND W7.D_E_L_E_T_ = '' 
+    WHERE 
+        BJ.BJ_QINI > 0 
+        AND BJ.BJ_DATA = '20260131' 
+        AND BJ.D_E_L_E_T_ = '' 
+ ), 
+ cte_precos AS ( 
+    SELECT 
+        PRODUTO, 
+        BJ_FILIAL AS FILIAL, 
+        BJ_DATA   AS DATA_LOTE, 
+        QTD_INICIAL AS SALDO_INICIAL, 
+        (QTD_INICIAL * TAXA_CAMBIO) AS SALDO_DOLAR
+    FROM cte_base 
+    WHERE PRECO_USD IS NOT NULL AND PRECO_USD <> 0 
+ )
+ SELECT 
+    PRODUTO, 
+    FILIAL,  
+    DATA_LOTE, 
+    SUM(SALDO_INICIAL) AS TOTAL_SALDO, 
+    SUM(SALDO_DOLAR)      AS TOTAL_SALDO_DOLAR, 
+    CASE WHEN SUM(SALDO_INICIAL) = 0 THEN NULL 
+            ELSE ROUND(SUM(SALDO_DOLAR) / SUM(SALDO_INICIAL), 4) 
+    END AS TAXA_MEDIA 
+FROM cte_precos 
+GROUP BY PRODUTO, FILIAL, DATA_LOTE 
+
+ /*
+ UPDATE s 
+ SET s.B9_XCUSUSD = TRY_CONVERT(DECIMAL(18,4), a.TAXA_MEDIA) 
+ FROM " + RetSqlName("SB9") + " s 
+ INNER JOIN cte_agg a 
+    ON s.B9_FILIAL = a.FILIAL  
+   AND s.B9_COD    = a.PRODUTO 
+   AND s.B9_DATA   = a.DATA_LOTE 
+ WHERE a.TOTAL_USD IS NOT NULL 
+  AND s.D_E_L_E_T_ = '' 
+*/

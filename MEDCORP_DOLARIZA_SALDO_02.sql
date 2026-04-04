@@ -1,0 +1,51 @@
+WITH cte_base AS (
+    SELECT
+        BJ.BJ_COD     AS PRODUTO,
+        BJ.BJ_QINI    AS QTD_INICIAL,
+        COALESCE(W7.W7_PRECO,1)   AS PRECO_USD,
+        COALESCE(W6.W6_TX_US_D,1) AS TAXA_CAMBIO
+    FROM SBJ010 BJ
+    INNER JOIN SB8010 B8
+        ON B8.B8_LOTECTL = BJ.BJ_LOTECTL
+       AND B8.B8_FILIAL  = BJ.BJ_FILIAL
+       AND BJ.BJ_LOCAL   = B8.B8_LOCAL
+       AND B8.D_E_L_E_T_ = ''
+    LEFT JOIN P90010 P9
+        ON P9.P90_LOTE   = B8.B8_LOTECTL
+       AND P9.P90_PRODUT = B8.B8_PRODUTO
+       AND P9.D_E_L_E_T_ = ''
+    LEFT JOIN SD1010 D1
+        ON D1.D1_DOC     = P9.P90_DOC
+       AND D1.D1_COD     = P9.P90_PRODUT
+       AND D1.D1_SERIE   = P9.P90_SERIE
+       AND D1.D1_FORNECE = P9.P90_FORNEC
+       AND D1.D1_LOJA    = P9.P90_LOJA
+       AND D1.D_E_L_E_T_ = ''
+    LEFT JOIN SW6010 W6
+        ON W6.W6_HAWB    = D1.D1_CONHEC
+       AND W6.D_E_L_E_T_ = ''
+    LEFT JOIN SW7010 W7
+        ON W7.W7_HAWB    = D1.D1_CONHEC
+       AND W7.W7_COD_I   = P9.P90_PRODUT
+       AND W7.D_E_L_E_T_ = ''
+    WHERE
+        BJ.BJ_QINI > 0
+        AND BJ.BJ_DATA = '20260131'
+        AND BJ.D_E_L_E_T_ = ''
+),
+cte_precos AS (
+    SELECT
+        PRODUTO,
+        (PRECO_USD * QTD_INICIAL)                 AS VALOR_TOT_DI, -- total em USD
+        (PRECO_USD * QTD_INICIAL * TAXA_CAMBIO)   AS VAL_TOT        -- total em BRL
+    FROM cte_base
+)
+SELECT
+    PRODUTO,
+    SUM(VALOR_TOT_DI) AS TOTAL_USD,
+    SUM(VAL_TOT)      AS TOTAL_BRL,
+    ROUND(SUM(VAL_TOT) / NULLIF(SUM(VALOR_TOT_DI), 0),2) AS TAXA_MEDIA
+FROM cte_precos
+WHERE VALOR_TOT_DI <> 0
+GROUP BY PRODUTO
+ORDER BY PRODUTO;
